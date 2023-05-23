@@ -37,7 +37,7 @@ export default class UserService {
     id: string,
     userName: string,
     roomName: string
-  ): userDate {
+  ): UserData {
     const data = {
       id,
       userName,

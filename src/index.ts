@@ -3,7 +3,7 @@ import prodServer from '@/server/prod';
 import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
-import UserService from '@/services/UserService';
+import UserService from '@/service/UserService';
 
 import { name } from '@/utils';
 
