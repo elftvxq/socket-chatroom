@@ -1,8 +1,9 @@
-import devServer from './server/dev';
-import prodServer from './server/prod';
+import devServer from '@/server/dev';
+import prodServer from '@/server/prod';
 import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
+import UserService from '@/services/UserService';
 
 import { name } from '@/utils';
 
@@ -11,6 +12,7 @@ const app = express();
 const server = http.createServer(app);
 // implement socket.io by http server
 const io = new Server(server);
+const userService = new UserService();
 
 // backend side create socket.io, listen to connection event
 io.on('connection', (socket) => {
