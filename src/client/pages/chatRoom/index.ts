@@ -1,5 +1,8 @@
 import './index.css';
 import { io } from 'socket.io-client';
+import { UserData } from '@/service/UserService';
+
+type UserMsg = { userData: UserData; msg: string; time: number };
 
 const url = new URL(location.href);
 const userName = url.searchParams.get('userName');
@@ -24,21 +27,38 @@ const headerRoomName = document.getElementById(
 const backBtn = document.getElementById('backBtn') as HTMLButtonElement;
 
 headerRoomName.textContent = roomName || '-';
+let userID = '';
 
-function createMessage(msg: string) {
+function createMessage(data: UserMsg) {
+  const date = new Date(data.time);
+  const time = `${date.getHours()}:${date.getMinutes()}`;
+
   const messageDiv = document.createElement('div');
-  messageDiv.classList.add('flex', 'justify-end', 'items-end', 'mb-4');
-  messageDiv.innerHTML = `
-  <p class="text-xs text-gray-700 mr-4">00:00</p>
+  messageDiv.classList.add('flex', 'items-end', 'mb-4');
 
-  <div>
-    <p class="text-xs text-white mb-1 text-right">Emma</p>
-    <p
-      class="mx-w-[50%] break-all bg-white px-4 py-2 rounded-bl-full rounded-br-full rounded-tl-full"
-    >
-      ${msg}
-    </p>
-  </div>`;
+  if (data.userData.id === userID) {
+    messageDiv.classList.add('justify-end');
+    messageDiv.innerHTML = `
+        <p class="text-xs text-gray-500 mr-4">${time}</p>
+        <div>
+            <p class="text-xs text-white mb-1 text-right">${data.userData.userName}</p>
+            <p class="mx-w-[50%] break-all bg-white px-4 py-2 rounded-bl-full rounded-br-full rounded-tl-full">
+                ${data.msg}
+            </p>
+        </div>`;
+  } else {
+    messageDiv.classList.add('justify-start');
+    messageDiv.innerHTML = `
+        <div>
+            <p class="text-xs text-gray-500 mb-1">${data.userData.userName}</p>
+            <p
+              class="mx-w-[50%] break-all bg-gray-600 px-4 py-2 rounded-tr-full rounded-br-full rounded-tl-full text-white">
+              ${data.msg}
+            </p>
+          </div>
+          <p class="text-xs text-gray-700 ml-4">${time}</p>`;
+  }
+
   chatBoard.appendChild(messageDiv);
   // clear input after submit message
   textInput.value = '';
@@ -74,14 +94,17 @@ backBtn.addEventListener('click', () => {
 });
 
 clientIo.on('join', (msg) => {
-  console.log('🚀 ~ file: index.ts:60 ~ clientIo.on ~ msg:', msg);
   roomMessage(msg);
 });
 
-clientIo.on('chat', (msg) => {
-  createMessage(msg);
+clientIo.on('chat', (data: UserMsg) => {
+  createMessage(data);
 });
 
 clientIo.on('leave', (msg) => {
   roomMessage(msg);
+});
+
+clientIo.on('userID', (id) => {
+  userID = id;
 });

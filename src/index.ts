@@ -4,6 +4,7 @@ import express from 'express';
 import { Server } from 'socket.io';
 import http from 'http';
 import UserService from '@/service/UserService';
+import moment from 'moment';
 
 const port = 3000;
 const app = express();
@@ -14,6 +15,8 @@ const userService = new UserService();
 
 // backend side create socket.io, listen to connection event
 io.on('connection', (socket) => {
+  socket.emit('userID', socket.id);
+
   socket.on(
     'join',
     ({ userName, roomName }: { userName: string; roomName: string }) => {
@@ -35,7 +38,12 @@ io.on('connection', (socket) => {
   );
 
   socket.on('chat', (msg) => {
-    io.emit('chat', msg);
+    const time = moment.utc();
+    const userData = userService.getUser(socket.id);
+    // send message to the users in the same room
+    if (userData) {
+      io.to(userData.roomName).emit('chat', { userData, msg, time });
+    }
   });
 
   socket.on('disconnect', () => {
@@ -44,7 +52,7 @@ io.on('connection', (socket) => {
     if (userName) {
       socket.broadcast
         .to(userData.roomName)
-        .emit('leave', `${userData.userName}has left the chat`);
+        .emit('leave', `${userData.userName} has left the chat`);
     }
 
     userService.removeUser(socket.id);
