@@ -15,6 +15,12 @@ const clientIo = io();
 const textInput = document.getElementById('textInput') as HTMLInputElement;
 const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 const chatBoard = document.getElementById('chatBoard') as HTMLDivElement;
+const headerRoomName = document.getElementById(
+  'headerRoomName'
+) as HTMLParagraphElement;
+const backBtn = document.getElementById('backBtn') as HTMLButtonElement;
+
+headerRoomName.textContent = roomName || '-';
 
 function createMessage(msg: string) {
   const message = document.createElement('div');
@@ -44,7 +50,10 @@ submitBtn.addEventListener('click', () => {
   clientIo.emit('chat', textValue);
 });
 
-// 2. the message is from 'join' event on the backend side
+backBtn.addEventListener('click', () => {
+  location.href = '/main/main.html';
+});
+
 clientIo.on('join', (msg) => {
   console.log(msg);
 });
