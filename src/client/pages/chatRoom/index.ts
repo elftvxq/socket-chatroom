@@ -11,6 +11,9 @@ if (!userName || !roomName) {
 
 // 1. create connection -> node server
 const clientIo = io();
+// pop up welcome message when join channel
+// send data when users join the chatroom
+clientIo.emit('join', { userName, roomName });
 
 const textInput = document.getElementById('textInput') as HTMLInputElement;
 const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
@@ -23,9 +26,9 @@ const backBtn = document.getElementById('backBtn') as HTMLButtonElement;
 headerRoomName.textContent = roomName || '-';
 
 function createMessage(msg: string) {
-  const message = document.createElement('div');
-  message.classList.add('flex', 'justify-end', 'items-end', 'mb-4');
-  message.innerHTML = `
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('flex', 'justify-end', 'items-end', 'mb-4');
+  messageDiv.innerHTML = `
   <p class="text-xs text-gray-700 mr-4">00:00</p>
 
   <div>
@@ -36,10 +39,26 @@ function createMessage(msg: string) {
       ${msg}
     </p>
   </div>`;
-  chatBoard.appendChild(message);
+  chatBoard.appendChild(messageDiv);
   // clear input after submit message
   textInput.value = '';
   // scroll to bottom
+  chatBoard.scrollTop = chatBoard.scrollHeight;
+}
+
+function roomMessage(msg: string) {
+  const welcomeMessageDiv = document.createElement('div');
+  welcomeMessageDiv.classList.add(
+    'flex',
+    'justify-center',
+    'items-center',
+    'mb-4'
+  );
+  welcomeMessageDiv.innerHTML = `
+     <p class="text-gray-700 text-sm">${msg}</p>`;
+
+  chatBoard.appendChild(welcomeMessageDiv);
+  // clear input after submit message
   chatBoard.scrollTop = chatBoard.scrollHeight;
 }
 
@@ -55,9 +74,14 @@ backBtn.addEventListener('click', () => {
 });
 
 clientIo.on('join', (msg) => {
-  console.log(msg);
+  console.log('🚀 ~ file: index.ts:60 ~ clientIo.on ~ msg:', msg);
+  roomMessage(msg);
 });
 
 clientIo.on('chat', (msg) => {
   createMessage(msg);
+});
+
+clientIo.on('leave', (msg) => {
+  roomMessage(msg);
 });
