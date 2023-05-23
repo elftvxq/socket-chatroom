@@ -5,8 +5,6 @@ import { Server } from 'socket.io';
 import http from 'http';
 import UserService from '@/service/UserService';
 
-import { name } from '@/utils';
-
 const port = 3000;
 const app = express();
 const server = http.createServer(app);
@@ -24,9 +22,15 @@ io.on('connection', (socket) => {
         userName,
         roomName
       );
+
+      socket.join(userData.roomName);
+
       userService.addUser(userData);
 
-      io.emit('join', `${userName} has joined the ${roomName}`);
+      // use socekt broadcase to send message to the users in the same room
+      socket.broadcast
+        .to(userData.roomName)
+        .emit('join', `${userName} has joined the ${roomName}`);
     }
   );
 
@@ -38,7 +42,9 @@ io.on('connection', (socket) => {
     const userData = userService.getUser(socket.id);
     const userName = userData?.userName;
     if (userName) {
-      io.emit('leave', `${userData.userName}has left the chat`);
+      socket.broadcast
+        .to(userData.roomName)
+        .emit('leave', `${userData.userName}has left the chat`);
     }
 
     userService.removeUser(socket.id);
